@@ -1,0 +1,569 @@
+openapi: 3.0.0
+info:
+  title: EazyShop Products APIs Definition
+  version: 1.0.1
+  description: | 
+    # About us
+    **EazyShop** is a open market product selling company. Any website can list our products by using our _APIs_.
+    Shipping & other logistic will be taken care by us. You will get an `Affiliate commision`for selling our products.
+    # Categories suported
+    - Mobiles
+      - Apple
+      - Samsung
+      - OnePlus
+    - Laptops
+    - Television
+    - Headphones
+  termsOfService: htps://example.com/terms
+  x-custom-info:
+    comment: Some comments
+    authors:
+      - name: Roberto
+        email: roberto@test.com
+  contact:
+    email: suppot@example.com
+    name: API Support
+    url: https://www.example.com/support
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://development.gigantic-server.com/v1
+    description: Development Server
+externalDocs:
+  description: Find more info here
+  url: https://example.com
+tags:
+  - name: Categories
+    description: Operation for categories
+  - name: Products
+    description: Operation for Products
+  - name: Orders
+    description: Operation for Orders
+security:
+  - BasicAuth: []
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - oAuth2AuthCode:
+    - read
+    - write
+    - admin
+  - openId:
+    - read
+    - write
+    - admin
+paths:
+  /categories:
+    get:
+      operationId: getCategories
+      security:
+        - BasicAuth: []
+      tags:
+        - Categories
+      summary: List all categories
+      description: Return all of categories supported
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 1000
+          examples:
+            mobiles:
+              value: 101
+            laptops:
+              value: 102
+            headphones:
+              value: 103
+            televisions:
+              value: 104
+      responses:
+        '200':
+          description: A list of all categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/Category"
+              examples:
+                all-categories-data:
+                  summary: Categories example data
+                  value:
+                    - categoryId: 101
+                      name: Mobiles
+                    - categoryId: 102
+                      name: Laptops
+                    - categoryId: 103
+                      name: headphones
+                    - categoryId: 104
+                      name: televisions
+                single-category-data:
+                  summary: Single category example data
+                  value:
+                    - categoryId: 104
+                      name: televisions
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+                    
+  /categories/{categoryId}:
+    get:
+      operationId: getCategoryDetails
+      security: []
+      tags:
+        - Categories
+      summary: List one categories
+      description: Return one of categories supported
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 1000
+          example: 102
+      responses:
+        '200':
+          description: A list of one categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/Category"
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+                      
+  /products:
+    get:
+      operationId: getProducts
+      tags:
+        - Products
+      summary: List all products
+      description: |
+        Return the list of all products 
+        supported by EazyShop
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 1001
+          example: 101
+      responses:
+        '200':
+          description: A list of all products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    productId:
+                      type: integer
+                    name:
+                      type: string
+                    price:
+                      type: number
+                    categoryName:
+                      type: string
+                    quantity:
+                      type: integer
+                      description: |
+                        ***Quantity** represents `stock`value when this filed is beign sent by shopo. Where
+                        aas in the scenarios of consumer sending this field, it represents `nummbers of products items`inside the order. Consumers are expected to handle the scenario of stopping the end user <u>*when the stock value is 0 *</u>
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+      
+  /products/{productId}:
+    get:
+      operationId: getProductsDetails
+      tags:
+        - Products
+      summary: Return  products details
+      description: |
+        Return  products details
+        supported by EazyShop
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 100
+            maximum: 1001
+          example: 101
+      responses:
+        '200':
+          description: Return  products details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productId:
+                    type: integer
+                  name:
+                    type: string
+                  price:
+                    type: number
+                  categoryName:
+                    type: string
+                  quantity:
+                    type: integer
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+  
+  /orders:
+    post:
+      operationId: createOrder
+      tags:
+        - Orders
+      summary: Create a order
+      description: Create a order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products:
+                    $ref: "#/components/schemas/Products"
+                address:
+                    $ref: "#/components/schemas/Address"
+      responses:
+        '201':
+          description: Return  orders details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+          links:
+            GetOrderByOrderId:
+              $ref: '#/components/links/GetOrderByOrderId'
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      operationId: updateOrder
+      tags:
+        - Orders
+      summary: Update a order
+      description: Update a order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: integer
+                products:
+                    $ref: "#/components/schemas/Products"
+                address:
+                    $ref: "#/components/schemas/Address"
+      responses:
+        '200':
+          description:   orders details update successfuly
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      operationId: deleteOrder
+      tags:
+        - Orders
+      summary: delete a order
+      description: delete a order
+      parameters:
+        - $ref: "#/components/parameters/orderIdQueryParam"
+      responses:
+        '204':
+          description:   orders delete successfuly
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+    get:
+      operationId: getOrderDetails
+      tags:
+        - Orders
+      summary: Get order details
+      description: Ger order details
+      parameters:
+        - $ref: "#/components/parameters/orderIdQueryParam"
+      responses:
+        '200':
+          description:   orders details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  products:
+                    $ref: "#/components/schemas/Products"
+                  address:
+                    $ref: "#/components/schemas/Address"
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+          
+  /orders/{orderId}:
+  
+    get:
+      deprecated: true
+      operationId: getOrderDetailsId
+      tags:
+        - Orders
+      summary: Get order details id
+      description: Ger order details id
+      parameters:
+        - $ref: "#/components/parameters/orderIdPathParam"
+      responses:
+        '200':
+          description:   orders details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  products:
+                    $ref: "#/components/schemas/Products"
+                  address:
+                    $ref: "#/components/schemas/Address"
+        
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+  /oneOfOrder:
+  #Polimorfismo
+    post:
+      operationId: insertOrderDetailsOneOf
+      tags:
+        - Orders
+      summary: Inser Oneof the order details
+      description: orders details one
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                products:
+                  type: object
+                  oneOf:
+                    - $ref: "#/components/schemas/Mobile"
+                    - $ref: "#/components/schemas/Laptop"
+                address:
+                  $ref: "#/components/schemas/Address"
+              required:
+                - products
+                - address
+      responses:
+        '200':
+          description: Order placed succesfully
+  
+  /anyOfOrder:
+  #Polimorfismo
+    get:
+      operationId: getOrderDetailAnyOf
+      tags:
+        - Orders
+      summary: Get Anyof the order details
+      description: orders details one
+      parameters:
+        - $ref: "#/components/parameters/orderIdQueryParam"
+        - name: fetchType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - summary
+              - details
+          description: >
+            Fetch Type:
+              * `summary` - Will provide Order Summary
+              * `details` - Will provide Order Summary & Order Address
+            
+      responses:
+        '200':
+          description: Return produicts details
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: "#/components/schemas/OrderSummary"
+                  - $ref: "#/components/schemas/OrderAddress"
+                
+                  
+      
+components:
+  parameters:
+    orderIdQueryParam:
+      name: orderId
+      in: query
+      required: true
+      schema:
+        type: integer
+        
+    orderIdPathParam:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: integer
+      
+  schemas:
+    OrderSummary:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Products"
+            
+    
+    OrderAddress:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Address"
+    
+    Mobile:
+    #HERENCIA
+      allOf: 
+        - $ref: "#/components/schemas/Products"
+        - type: object
+          properties:
+            networkType:
+              type: string
+              enum:
+                - 4G
+                - 5G
+          required:
+            - networkType
+            
+    Laptop:
+    #HERENCIA
+      allOf:
+        - $ref: "#/components/schemas/Products"
+        - type: object
+          properties:
+            ram:
+              type: string
+              enum:
+                - 8 GB
+                - 16 GB
+                - 32 GB
+          required:
+            - ram
+      
+    Address:
+      type: object
+      properties:
+        addressLine:
+          type: string
+        city: 
+          type: string
+        state:
+          type: string
+          enum:
+            - California
+            - Texas
+            - Indiana
+            - NewYork
+        zipcode:
+          type: string
+        isOfficeAddress:
+          type: boolean
+      required: [addressLine, city, state, zipcode]
+    
+    Products:
+        type: object
+        properties:
+          productId:
+            type: integer
+            writeOnly: true
+          name:
+            type: string
+            writeOnly: true
+          price:
+            type: number
+            format: float
+            writeOnly: true
+          categoryName:
+            type: string
+            nullable: true
+          releaseDate:
+            type: string
+            format: date-time
+            readOnly: true
+          quantity:
+            type: integer
+            writeOnly: true
+            description: |
+                        ***Quantity** represents `stock`value when this filed is beign sent by shopo. Where
+                        aas in the scenarios of consumer sending this field, it represents `nummbers of products items`inside the order. Consumers are expected to handle the scenario of stopping the end user <u>*when the stock value is 0 *</u>
+                        
+    Category:
+      type: object
+      properties:
+        categoryId:
+          type: integer
+        name:
+          type: string
+  
+  responses:
+    InternalServerError:
+      description: |
+        An error ocurrered while processing the request. Please contact with support
+        
+  links:
+    GetOrderByOrderId:
+      description: The order value returned in the response can be used as input parameter in `GET /orders`.
+      operationId: getOrderDetailsId
+      parameters:
+        orderId: '$response.body#/orderId'
+  
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    oAuth2AuthCode:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://example.com/oauth/authorize
+          tokenUrl: https://example.com/api/oauth.access
+          scopes:
+            read: Read only access
+            write: write only access
+            admin: admin access
+            
+    openId:
+      type: openIdConnect
+      openIdConnectUrl: https://example.com/well-known/openid-configuration
+      
